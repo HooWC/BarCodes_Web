@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>条形码扫描器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .scanner-container {
+            padding: 30px;
+        }
+
+        #reader {
+            width: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 3px solid #667eea;
+            background: #f5f5f5;
+        }
+
+        #reader video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        #startBtn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        #startBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        #stopBtn {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        #stopBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        #stopBtn:disabled,
+        #startBtn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-container {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+        }
+
+        .result-container h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        #result {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1.2em;
+            color: #333;
+            word-break: break-all;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .no-result {
+            color: #999;
+            font-style: italic;
+        }
+
+        .success-result {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .history-container {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #764ba2;
+        }
+
+        .history-container h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        #history {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-time {
+            font-size: 0.9em;
+            color: #999;
+        }
+
+        #clearHistory {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 0.9em;
+            background: #6c757d;
+            color: white;
+        }
+
+        #clearHistory:hover {
+            background: #5a6268;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📷 条形码扫描器</h1>
+            <p>使用相机扫描任何条形码或二维码</p>
+        </div>
+
+        <div class="scanner-container">
+            <div id="reader"></div>
+            
+            <div class="controls">
+                <button id="startBtn">开始扫描</button>
+                <button id="stopBtn" disabled>停止扫描</button>
+            </div>
+
+            <div class="result-container">
+                <h2>扫描结果</h2>
+                <div id="result" class="no-result">等待扫描...</div>
+            </div>
+
+            <div class="history-container">
+                <h2>扫描历史</h2>
+                <div id="history"></div>
+                <button id="clearHistory">清除历史</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 使用 Html5-QRCode 库 -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    
+    <script>
+        let html5QrcodeScanner = null;
+        let scanHistory = [];
+
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const resultDiv = document.getElementById('result');
+        const historyDiv = document.getElementById('history');
+        const clearHistoryBtn = document.getElementById('clearHistory');
+
+        // 加载历史记录
+        function loadHistory() {
+            const saved = localStorage.getItem('scanHistory');
+            if (saved) {
+                scanHistory = JSON.parse(saved);
+                updateHistoryDisplay();
+            }
+        }
+
+        // 保存历史记录
+        function saveHistory() {
+            localStorage.setItem('scanHistory', JSON.stringify(scanHistory));
+        }
+
+        // 更新历史显示
+        function updateHistoryDisplay() {
+            if (scanHistory.length === 0) {
+                historyDiv.innerHTML = '<div class="no-result">暂无扫描记录</div>';
+                return;
+            }
+
+            historyDiv.innerHTML = scanHistory.map(item => `
+                <div class="history-item">
+                    <span>${item.code}</span>
+                    <span class="history-time">${item.time}</span>
+                </div>
+            `).join('');
+        }
+
+        // 扫描成功回调
+        function onScanSuccess(decodedText, decodedResult) {
+            console.log(`扫描成功: ${decodedText}`, decodedResult);
+            
+            // 显示结果
+            resultDiv.className = 'success-result';
+            resultDiv.textContent = decodedText;
+
+            // 添加到历史
+            const now = new Date();
+            const timeString = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+            
+            scanHistory.unshift({
+                code: decodedText,
+                time: timeString,
+                timestamp: now.getTime()
+            });
+
+            // 只保留最近20条记录
+            if (scanHistory.length > 20) {
+                scanHistory = scanHistory.slice(0, 20);
+            }
+
+            saveHistory();
+            updateHistoryDisplay();
+
+            // 播放提示音（可选）
+            try {
+                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGGS77+ipUxELTqni+a5jHAc5j9bz0X8sBS1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGS55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsK');
+                audio.play();
+            } catch (e) {
+                console.log('无法播放提示音');
+            }
+        }
+
+        // 扫描失败回调（可选）
+        function onScanError(errorMessage) {
+            // 不需要对每个错误都做处理，扫描过程中会有很多失败
+            // console.log(`扫描错误: ${errorMessage}`);
+        }
+
+        // 开始扫描
+        startBtn.addEventListener('click', function() {
+            html5QrcodeScanner = new Html5Qrcode("reader");
+            
+            const config = {
+                fps: 10,    // 每秒扫描帧数
+                qrbox: { width: 250, height: 250 },  // 扫描区域大小
+                aspectRatio: 1.0
+            };
+
+            // 启动相机扫描
+            html5QrcodeScanner.start(
+                { facingMode: "environment" },  // 使用后置摄像头
+                config,
+                onScanSuccess,
+                onScanError
+            ).then(() => {
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                resultDiv.className = 'no-result';
+                resultDiv.textContent = '正在扫描...';
+            }).catch(err => {
+                alert(`无法启动相机: ${err}`);
+                console.error(err);
+            });
+        });
+
+        // 停止扫描
+        stopBtn.addEventListener('click', function() {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.stop().then(() => {
+                    startBtn.disabled = false;
+                    stopBtn.disabled = true;
+                    resultDiv.className = 'no-result';
+                    resultDiv.textContent = '扫描已停止';
+                }).catch(err => {
+                    console.error(err);
+                });
+            }
+        });
+
+        // 清除历史
+        clearHistoryBtn.addEventListener('click', function() {
+            if (confirm('确定要清除所有扫描历史吗？')) {
+                scanHistory = [];
+                saveHistory();
+                updateHistoryDisplay();
+            }
+        });
+
+        // 页面加载时读取历史
+        loadHistory();
+    </script>
+</body>
+</html>
+
