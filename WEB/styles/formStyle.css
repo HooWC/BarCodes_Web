@@ -1,0 +1,138 @@
+* { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+            background: #f4f5f7;
+            color: #222;
+        }
+        .page {
+            max-width: 900px;
+            margin: 24px auto;
+            padding: 24px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+        .title {
+            text-align: center;
+            margin-bottom: 8px;
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #7b7b8a;
+            margin-bottom: 24px;
+            font-size: 13px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px 20px;
+            margin-bottom: 24px;
+        }
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .label { font-size: 13px; color: #5b2ea6; }
+        .input {
+            width: 100%;
+            height: 44px;
+            padding: 0 16px;
+            border-radius: 24px;
+            border: 1px solid #e5e6eb;
+            background: #fff;
+            outline: none;
+            font-size: 14px;
+        }
+        .input:focus { border-color: #7a52cc; box-shadow: 0 0 0 3px rgba(122,82,204,0.12); }
+
+        .section-title {
+            margin: 28px 0 12px;
+            font-weight: 700;
+            color: #2b2b33;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+        }
+        .table thead th {
+            text-align: left;
+            font-size: 12px;
+            color: #7b7b8a;
+            font-weight: 600;
+            padding: 0 12px 6px 12px;
+        }
+        .table tbody tr {
+            background: #faf9ff;
+            border-radius: 14px;
+        }
+        .table tbody td {
+            padding: 12px;
+            vertical-align: middle;
+        }
+        .row {
+            box-shadow: 0 1px 0 #eee inset, 0 -1px 0 #eee inset;
+            border-radius: 12px;
+        }
+        .item-cell { font-size: 14px; }
+        .date-input {
+            height: 38px;
+            border-radius: 12px;
+            border: 1px solid #e5e6eb;
+            padding: 0 10px;
+            background: #fff;
+        }
+        .check-wrap { display: flex; gap: 16px; align-items: center; }
+        .radio {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+        }
+        .radio input { width: 18px; height: 18px; }
+
+        /* 居中纵向布局（用于合并为一列的项目行） */
+        /* .table .row td[colspan="3"] { text-align: center; } */
+        .table .row td[colspan="3"] .item-cell { font-size: 15px; font-weight: 600; }
+        .table .row td[colspan="3"] .check-wrap { justify-content: center; }
+        .table .row td[colspan="3"] .date-input { min-width: 180px; }
+
+        .actions { display: flex; justify-content: center; margin-top: 28px; }
+        .btn-submit {
+            height: 44px;
+            padding: 0 28px;
+            border: 0;
+            border-radius: 24px;
+            color: #fff;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            background: linear-gradient(90deg,#ee3ba5,#6f3bd9);
+            box-shadow: 0 10px 24px rgba(111,59,217,0.25);
+        }
+        .btn-submit:active { transform: translateY(1px); }
+
+        @media (max-width: 680px) {
+            .page { margin: 12px; padding: 16px; border-radius: 12px; }
+            .title { font-size: 18px; }
+            .subtitle { font-size: 12px; margin-bottom: 16px; }
+            .grid-2 { grid-template-columns: 1fr; gap: 12px; }
+            .input { height: 40px; border-radius: 20px; font-size: 14px; }
+            .section-title { margin: 22px 0 10px; }
+            .table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; border-spacing: 0 8px; }
+            .table thead th { font-size: 11px; padding: 0 10px 6px 10px; }
+            .table tbody td { padding: 10px; }
+            .item-cell { min-width: 200px; line-height: 1.25; }
+            .date-input { min-width: 150px; height: 36px; }
+            .check-wrap { gap: 12px; }
+            .radio input { width: 20px; height: 20px; }
+            .actions { margin-top: 20px; }
+            .btn-submit { height: 42px; padding: 0 22px; border-radius: 22px; }
+        }

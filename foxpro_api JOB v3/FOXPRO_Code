@@ -1,0 +1,160 @@
+LPARAMETERS tcDummy
+LOCAL lcCSerialNo, lcRemanPart, lcSupervisor, lcDateOut, lcCompleteDt, cSQL, cCheckSQL, cCheckSQL1,loRS,loRS1
+LOCAL loXMLHTTP, lcRequestBody, lcResponse, lcURL,lcjob_id
+
+* --- Base values from form ---
+lcCSerialNo = ALLTRIM(THISFORM.zcserial_no)
+lcRemanPart = "ALTERNATOR"   && or use control if dynamic
+lcjob_id    = ALLTRIM(THISFORM.zJob_id)
+* Supervisor from combo
+lcSupervisor = IIF(EMPTY(THISFORM.cboSupervisorNM.DisplayValue), ;
+    '', STRTRAN(ALLTRIM(THISFORM.cboSupervisorNM.DisplayValue), "'", "''"))
+
+* Set form controls
+THISFORM.txtApprovedBy.Value = lcSupervisor
+THISFORM.txtDateOut.Value   = DATE()
+
+** --- SQL datetime strings ---
+lcDateOut    = THISFORM.toSQLDateTime(THISFORM.txtDateOut.Value)
+lcCompleteDt = THISFORM.toSQLDateTime(DATETIME())
+
+
+* --- 1. Update Import_Reman_Part_ERP status ---
+cSQL = "UPDATE Import_Reman_Part_ERP SET " + ;
+       "SupervisorNM = '" + lcSupervisor + "', " + ;
+       "Date_Out = " + lcDateOut + ", " + ;
+       "complete_status = 1, " + ;
+       "completedt = " + lcCompleteDt + " " + ;
+       "WHERE cserial_no = '" + lcCSerialNo + "' " + ;
+       "AND reman_part = '" + lcRemanPart + "'"
+THISFORM.mycustomado1.getrecordset(cSQL)
+
+* --- Call PDF Generation API ---
+lcURL = "http://rs1:5202/generate-pdf"
+
+TRY
+    loXMLHTTP = CREATEOBJECT("MSXML2.XMLHTTP")
+    lcRequestBody = '{"cserial_no": "' + lcCSerialNo + '", "reman_part": "' + lcRemanPart + '"}'
+    loXMLHTTP.open("POST", lcURL, .F.)
+    loXMLHTTP.setRequestHeader("Content-Type", "application/json")
+    loXMLHTTP.send(lcRequestBody)
+
+    IF loXMLHTTP.status = 200
+        lcResponse = loXMLHTTP.responseText
+        MESSAGEBOX("PDF generated successfully!" + CHR(13) + "Response: " + lcResponse, 64, "API Success")
+    ELSE
+        MESSAGEBOX("PDF generation failed! Status: " + TRANSFORM(loXMLHTTP.status) + CHR(13) + ;
+                   "Error: " + loXMLHTTP.responseText, 16, "API Error")
+        llError = .T.
+    ENDIF
+CATCH TO loException
+    MESSAGEBOX("Error calling API:" + CHR(13) + loException.Message, 16, "Error")
+    llError = .T.
+ENDTRY
+
+* --- Call Test Report Generation API ---
+lcURL2 = "http://rs1:5202/generate-test-report"
+
+TRY
+    loXMLHTTP2 = CREATEOBJECT("MSXML2.XMLHTTP")
+    lcRequestBody2 = '{"job_id": "' + lcjob_id + '", "reman_part": "' + lcRemanPart + '"}'
+    loXMLHTTP2.open("POST", lcURL2, .F.)
+    loXMLHTTP2.setRequestHeader("Content-Type", "application/json")
+    loXMLHTTP2.send(lcRequestBody2)
+
+    IF loXMLHTTP2.status = 200
+        lcResponse2 = loXMLHTTP2.responseText
+        MESSAGEBOX("Test report generated successfully!" + CHR(13) + "Response: " + lcResponse2, 64, "API Success")
+    ELSE
+        MESSAGEBOX("Test report generation failed! Status: " + TRANSFORM(loXMLHTTP2.status) + CHR(13) + ;
+                   "Error: " + loXMLHTTP2.responseText, 16, "API Error")
+        llError = .T.
+    ENDIF
+CATCH TO loException
+    MESSAGEBOX("Error calling Test Report API:" + CHR(13) + loException.Message, 16, "Error")
+    llError = .T.
+ENDTRY
+
+
+
+********** --- 2. Check and sync to Import_Reman_Part ------------------*********************
+cCheckSQL = "SELECT COUNT(*) AS recCount FROM Import_Reman_Part " + ;
+            "WHERE cserial_no = '" + lcCSerialNo + "' " + ;
+            "AND reman_part = '" + lcRemanPart + "'"
+loRS = THISFORM.mycustomado1.getrecordset(cCheckSQL)
+
+IF ISNULL(loRS) OR loRS.Fields("recCount").Value = 0
+    * --- Record not found - Insert from ERP ---
+    cSQL = ;
+        "INSERT INTO Import_Reman_Part " + ;
+        "(job_id, reman_part, complete_status, completedt, cserial_no, wo_no, file_path, ERP,tr_path) " + ;
+        "SELECT TOP 1 job_id, reman_part, 'COMPLETED', completedt, cserial_no, wo_no, file_path, 1,tr_path " + ;
+        "FROM Import_Reman_Part_ERP " + ;
+        "WHERE cserial_no = '" + lcCSerialNo + "' " + ;
+        "AND reman_part = '" + lcRemanPart + "' " + ;
+        "ORDER BY pk DESC"  && Add ORDER BY to ensure getting the latest record
+
+    THISFORM.mycustomado1.getrecordset(cSQL)
+    MESSAGEBOX("Record successfully inserted into Import_Reman_Part.", 64, "Insert Successful")
+ELSE
+    * --- Record already exists - No action needed ---
+    * MESSAGEBOX("Record already exists in Import_Reman_Part. No update needed.", 48, "No Update Needed")
+		* --- Record already exists - UPDATE with latest data from ERP ---
+    cUpdateSQL = ;
+        "UPDATE Import_Reman_Part " + ;
+        "SET wo_no = (SELECT TOP 1 wo_no FROM Import_Reman_Part_ERP " + ;
+                 "WHERE cserial_no = '" + lcCSerialNo + "' " + ;
+                 "AND reman_part = '" + lcRemanPart + "' " + ;
+                 "ORDER BY pk DESC), " + ;
+        "file_path = (SELECT TOP 1 file_path FROM Import_Reman_Part_ERP " + ;
+                    "WHERE cserial_no = '" + lcCSerialNo + "' " + ;
+                    "AND reman_part = '" + lcRemanPart + "' " + ;
+                    "ORDER BY pk DESC) " + ;
+        "tr_path = (SELECT TOP 1 tr_path FROM Import_Reman_Part_ERP " + ;
+                    "WHERE cserial_no = '" + lcCSerialNo + "' " + ;
+                    "AND reman_part = '" + lcRemanPart + "' " + ;
+                    "ORDER BY pk DESC) " + ;
+         "WHERE cserial_no = '" + lcCSerialNo + "' " + ;
+        "AND reman_part = '" + lcRemanPart + "'"
+
+    THISFORM.mycustomado1.getrecordset(cUpdateSQL)
+    MESSAGEBOX("Record successfully updated in Import_Reman_Part.", 64, "Update Successful")
+
+ENDIF
+
+
+---------3. Sync to Jobi_Reman_Table --------------------------------------************
+
+cCheckSQL1 = "SELECT COUNT(*) AS recCount FROM Jobi_Reman " + ;
+            "WHERE Job_id = '" + lcjob_id + "' " + ;
+            "AND reman_part = '" + lcRemanPart + "'"
+loRS1 = THISFORM.mycustomado1.getrecordset(cCheckSQL1)
+
+IF ISNULL(loRS1) OR loRS1.Fields("recCount").Value = 0
+    * --- Record not found - Insert from ERP ---
+    cSQL = ;
+        "INSERT INTO Jobi_Reman " + ;
+        "(job_id, wo_no,reman_part, complete_status, completedt,status, source) " + ;
+        "SELECT TOP 1 job_id,wo_no, reman_part, 'COMPLETED', completedt, 'N', 'ERP' " + ;
+        "FROM Import_Reman_Part_ERP " + ;
+        "WHERE Job_Id = '" + lcjob_id + "' " + ;
+        "AND reman_part = '" + lcRemanPart + "' " + ;
+        "ORDER BY pk DESC"  && Add ORDER BY to ensure getting the latest record
+
+    THISFORM.mycustomado1.getrecordset(cSQL)
+    MESSAGEBOX("Record successfully inserted into Import_Reman_Part.", 64, "Insert Successful")
+ELSE
+    * --- Record already exists - No action needed ---
+    MESSAGEBOX("Record already exists in Import_Reman_Part. No update needed.", 48, "No Update Needed")
+	
+
+ENDIF
+
+
+
+
+
+* --- 4. Confirmation and refresh ---
+MESSAGEBOX("Record successfully completed and synced to Import_Reman_Part.", 64, "Complete")
+THISFORM.RefreshData(.T.)
+THISFORM.Refresh

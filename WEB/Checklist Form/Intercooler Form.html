@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intercooler Form</title>
+    <link rel="stylesheet" href="../styles/formStyle.css">
+</head>
+<body>
+    <form class="page">
+        <div class="title">[INT] Intercooler</div>
+        <div class="subtitle">Please record the date for each step and select pass or fail (√ / X)</div>
+
+        <div class="grid-2">
+            <div class="field">
+                <label class="label" for="chassisNo">Chassis No.</label>
+                <input class="input" id="chassisNo" name="chassisNo" placeholder="Enter Chassis No." />
+            </div>
+            <div class="field">
+                <label class="label" for="operatorName">Operator Name</label>
+                <input class="input" id="operatorName" name="operatorName" placeholder="Enter Operator Name" />
+            </div>
+            <div class="field">
+                <label class="label" for="supervisorName">Supervisor Name</label>
+                <input class="input" id="supervisorName" name="supervisorName" placeholder="Enter Supervisor Name" />
+            </div>
+            <div class="field">
+                <label class="label" for="dateIn">Date In</label>
+                <input class="input" id="dateIn" name="dateIn" type="date" />
+            </div>
+            <div class="field">
+                <label class="label" for="dateOut">Date Out</label>
+                <input class="input" id="dateOut" name="dateOut" type="date" />
+            </div>
+        </div>
+
+        <h3 class="section-title">Incoming Inspection / Core Management</h3>
+        <table class="table" data-group="g1" data-master="true">
+            <tbody>
+                <tr class="row">
+                    <td colspan="3">
+                        <div class="item-cell">Attachment Parts</div>
+                        <div class="check-wrap" style="margin-top:8px; gap:16px;">
+                            <input class="date-input" type="date" name="sec1_incoming_exterior_date">
+                            <label class="radio"><input type="radio" name="sec1_incoming_exterior" value="pass"> √</label>
+                            <label class="radio"><input type="radio" name="sec1_incoming_exterior" value="fail"> X</label>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="row">
+                    <td colspan="3">
+                        <div class="item-cell">Radiator Housing</div>
+                        <div class="check-wrap" style="margin-top:8px; gap:16px;">
+                            <input class="date-input" type="date" name="sec1_incoming_housing_date">
+                            <label class="radio"><input type="radio" name="sec1_incoming_housing" value="pass"> √</label>
+                            <label class="radio"><input type="radio" name="sec1_incoming_housing" value="fail"> X</label>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3 class="section-title">Disassembly Process</h3>
+        <table class="table" data-group="g1">
+            <tbody>
+                <tr class="row"><td colspan="3"><div class="item-cell">Intercooler Housing</div><div class="check-wrap" style="margin-top:8px; gap:16px;"><input class="date-input" type="date" name="sec1_dis_comp_housing_date"><label class="radio"><input type="radio" name="sec1_dis_comp_housing" value="pass"> √</label><label class="radio"><input type="radio" name="sec1_dis_comp_housing" value="fail"> X</label></div></td></tr>
+                <tr class="row"><td colspan="3"><div class="item-cell">Attachment Parts</div><div class="check-wrap" style="margin-top:8px; gap:16px;"><input class="date-input" type="date" name="sec1_dis_turbo_housing_date"><label class="radio"><input type="radio" name="sec1_dis_turbo_housing" value="pass"> √</label><label class="radio"><input type="radio" name="sec1_dis_turbo_housing" value="fail"> X</label></div></td></tr>
+                <tr class="row"><td colspan="3"><div class="item-cell">Piping System</div><div class="check-wrap" style="margin-top:8px; gap:16px;"><input class="date-input" type="date" name="sec1_dis_comp_impeller_date"><label class="radio"><input type="radio" name="sec1_dis_comp_impeller" value="pass"> √</label><label class="radio"><input type="radio" name="sec1_dis_comp_impeller" value="fail"> X</label></div></td></tr>
+            </tbody>
+        </table>
+
+        <h3 class="section-title">Cleaning / Paint</h3>
+        <table class="table" data-group="g1">
+            <tbody>
+                <tr class="row"><td colspan="3"><div class="item-cell">Intercooler Housing</div><div class="check-wrap" style="margin-top:8px; gap:16px;"><input class="date-input" type="date" name="sec1_cln_comp_housing_date"><label class="radio"><input type="radio" name="sec1_cln_comp_housing" value="pass"> √</label><label class="radio"><input type="radio" name="sec1_cln_comp_housing" value="fail"> X</label></div></td></tr>
+                <tr class="row"><td colspan="3"><div class="item-cell">Attachment Parts</div><div class="check-wrap" style="margin-top:8px; gap:16px;"><input class="date-input" type="date" name="sec1_cln_turbo_housing_date"><label class="radio"><input type="radio" name="sec1_cln_turbo_housing" value="pass"> √</label><label class="radio"><input type="radio" name="sec1_cln_turbo_housing" value="fail"> X</label></div></td></tr>
+                <tr class="row"><td colspan="3"><div class="item-cell">Piping System</div><div class="check-wrap" style="margin-top:8px; gap:16px;"><input class="date-input" type="date" name="sec1_cln_comp_impeller_date"><label class="radio"><input type="radio" name="sec1_cln_comp_impeller" value="pass"> √</label><label class="radio"><input type="radio" name="sec1_cln_comp_impeller" value="fail"> X</label></div></td></tr>
+            </tbody>
+        </table>
+
+        <h3 class="section-title">Remediate / Repair Activity</h3>
+        <table class="table" data-group="g2" data-master="true">
+            <tbody>
+                <tr class="row"><td colspan="3"><div class="item-cell">Intercooler Housing</div><div class="check-wrap" style="margin-top:8px; gap:16px;"><input class="date-input" type="date" name="sec2_rep_comp_housing_date"><label class="radio"><input type="radio" name="sec2_rep_comp_housing" value="pass"> √</label><label class="radio"><input type="radio" name="sec2_rep_comp_housing" value="fail"> X</label></div></td></tr>
+                <tr class="row"><td colspan="3"><div class="item-cell">Attachment Parts</div><div class="check-wrap" style="margin-top:8px; gap:16px;"><input class="date-input" type="date" name="sec2_rep_turbo_housing_date"><label class="radio"><input type="radio" name="sec2_rep_turbo_housing" value="pass"> √</label><label class="radio"><input type="radio" name="sec2_rep_turbo_housing" value="fail"> X</label></div></td></tr>
+                <tr class="row"><td colspan="3"><div class="item-cell">Piping System</div><div class="check-wrap" style="margin-top:8px; gap:16px;"><input class="date-input" type="date" name="sec2_rep_comp_impeller_date"><label class="radio"><input type="radio" name="sec2_rep_comp_impeller" value="pass"> √</label><label class="radio"><input type="radio" name="sec2_rep_comp_impeller" value="fail"> X</label></div></td></tr>
+            </tbody>
+        </table>
+
+        <h3 class="section-title">Re-assembly</h3>
+        <table class="table" data-group="g2">
+            <tbody>
+                <tr class="row"><td colspan="3"><div class="item-cell">Intercooler Re-assembly</div><div class="check-wrap" style="margin-top:8px; gap:16px;"><input class="date-input" type="date" name="sec2_reassembly_date"><label class="radio"><input type="radio" name="sec2_reassembly" value="pass"> √</label><label class="radio"><input type="radio" name="sec2_reassembly" value="fail"> X</label></div></td></tr>
+            </tbody>
+        </table>
+
+        <h3 class="section-title">Intercooler Assembly Inspection</h3>
+        <table class="table" data-group="g3" data-master="true">
+            <tbody>
+                <tr class="row"><td colspan="3"><div class="item-cell">QC Final Inspection</div><div class="check-wrap" style="margin-top:8px; gap:16px;"><input class="date-input" type="date" name="sec3_qc_final_date"><label class="radio"><input type="radio" name="sec3_qc_final" value="pass"> √</label><label class="radio"><input type="radio" name="sec3_qc_final" value="fail"> X</label></div></td></tr>
+                <tr class="row"><td colspan="3"><div class="item-cell">Testing</div><div class="check-wrap" style="margin-top:8px; gap:16px;"><input class="date-input" type="date" name="sec3_testing_date"><label class="radio"><input type="radio" name="sec3_testing" value="pass"> √</label><label class="radio"><input type="radio" name="sec3_testing" value="fail"> X</label></div></td></tr>
+                <tr class="row"><td colspan="3"><div class="item-cell">Labelling</div><div class="check-wrap" style="margin-top:8px; gap:16px;"><input class="date-input" type="date" name="sec3_labelling_date"><label class="radio"><input type="radio" name="sec3_labelling" value="pass"> √</label><label class="radio"><input type="radio" name="sec3_labelling" value="fail"> X</label></div></td></tr>
+                <tr class="row"><td colspan="3"><div class="item-cell">Packaging / Storage / Install on truck</div><div class="check-wrap" style="margin-top:8px; gap:16px;"><input class="date-input" type="date" name="sec3_packaging_date"><label class="radio"><input type="radio" name="sec3_packaging" value="pass"> √</label><label class="radio"><input type="radio" name="sec3_packaging" value="fail"> X</label></div></td></tr>
+            </tbody>
+        </table>
+
+        <div class="actions">
+            <button class="btn-submit" type="submit">SUBMIT</button>
+        </div>
+    </form>
+    
+    <script src="../javascript/formScript.js"></script>
+</body>
+</html>
+
+

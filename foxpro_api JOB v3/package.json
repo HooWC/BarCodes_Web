@@ -1,0 +1,21 @@
+{
+  "name": "foxpro_api",
+  "version": "1.0.0",
+  "main": "PDF_ERP_FILE_FOXPRO.js",
+  "scripts": {
+    "start": "node pdf_api_server.js",
+    "dev": "node pdf_api_server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "bwip-js": "^4.7.0",
+    "cors": "^2.8.5",
+    "express": "^4.16.4",
+    "mssql": "^6.4.0",
+    "pdf-lib": "^1.17.1"
+  }
+}
