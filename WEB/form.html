@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Turbocharger - 表单</title>
+    <style>
+        /* 基础样式 */
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+            background: #f4f5f7;
+            color: #222;
+        }
+        .page {
+            max-width: 900px;
+            margin: 24px auto;
+            padding: 24px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+        .title {
+            text-align: center;
+            margin-bottom: 8px;
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #7b7b8a;
+            margin-bottom: 24px;
+            font-size: 13px;
+        }
+
+        /* 顶部信息表单（两列） */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px 20px;
+            margin-bottom: 24px;
+        }
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .label { font-size: 13px; color: #5b2ea6; }
+        .input {
+            width: 100%;
+            height: 44px;
+            padding: 0 16px;
+            border-radius: 24px;
+            border: 1px solid #e5e6eb;
+            background: #fff;
+            outline: none;
+            font-size: 14px;
+        }
+        .input:focus { border-color: #7a52cc; box-shadow: 0 0 0 3px rgba(122,82,204,0.12); }
+
+        /* 分节标题 */
+        .section-title {
+            margin: 28px 0 12px;
+            font-weight: 700;
+            color: #2b2b33;
+        }
+
+        /* 表格样式 */
+        .table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 10px; /* 行间距 */
+        }
+        .table thead th {
+            text-align: left;
+            font-size: 12px;
+            color: #7b7b8a;
+            font-weight: 600;
+            padding: 0 12px 6px 12px;
+        }
+        .table tbody tr {
+            background: #faf9ff;
+            border-radius: 14px;
+        }
+        .table tbody td {
+            padding: 12px;
+            vertical-align: middle;
+        }
+        .row {
+            box-shadow: 0 1px 0 #eee inset, 0 -1px 0 #eee inset;
+            border-radius: 12px;
+        }
+        .item-cell { font-size: 14px; }
+        .date-input {
+            height: 38px;
+            border-radius: 12px;
+            border: 1px solid #e5e6eb;
+            padding: 0 10px;
+            background: #fff;
+        }
+        .check-wrap { display: flex; gap: 16px; align-items: center; }
+        .radio {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+        }
+        .radio input { width: 18px; height: 18px; }
+
+        /* 提交按钮 */
+        .actions { display: flex; justify-content: center; margin-top: 28px; }
+        .btn-submit {
+            height: 44px;
+            padding: 0 28px;
+            border: 0;
+            border-radius: 24px;
+            color: #fff;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            background: linear-gradient(90deg,#ee3ba5,#6f3bd9);
+            box-shadow: 0 10px 24px rgba(111,59,217,0.25);
+        }
+        .btn-submit:active { transform: translateY(1px); }
+
+        @media (max-width: 680px) {
+            .page { margin: 12px; padding: 16px; border-radius: 12px; }
+            .title { font-size: 18px; }
+            .subtitle { font-size: 12px; margin-bottom: 16px; }
+            .grid-2 { grid-template-columns: 1fr; gap: 12px; }
+            .input { height: 40px; border-radius: 20px; font-size: 14px; }
+            .section-title { margin: 22px 0 10px; }
+            /* 表格在手机上可横向滚动，避免内容被挤压 */
+            .table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; border-spacing: 0 8px; }
+            .table thead th { font-size: 11px; padding: 0 10px 6px 10px; }
+            .table tbody td { padding: 10px; }
+            .item-cell { min-width: 200px; line-height: 1.25; }
+            .date-input { min-width: 150px; height: 36px; }
+            .check-wrap { gap: 12px; }
+            .radio input { width: 20px; height: 20px; }
+            .actions { margin-top: 20px; }
+            .btn-submit { height: 42px; padding: 0 22px; border-radius: 22px; }
+        }
+    </style>
+</head>
+<body>
+    <form class="page">
+        <div class="title">Turbocharger</div>
+        <div class="subtitle">请根据工序逐项记录日期并选择通过或拒绝（√ / X）</div>
+
+        <!-- 顶部信息区域 -->
+        <div class="grid-2">
+            <div class="field">
+                <label class="label" for="partName">Part Name</label>
+                <input class="input" id="partName" name="partName" placeholder="Enter Part Name" />
+            </div>
+            <div class="field">
+                <label class="label" for="chassisNo">Chassis No.</label>
+                <input class="input" id="chassisNo" name="chassisNo" placeholder="Enter Chassis No." />
+            </div>
+            <div class="field">
+                <label class="label" for="operatorName">Operator Name</label>
+                <input class="input" id="operatorName" name="operatorName" placeholder="Enter Operator Name" />
+            </div>
+            <div class="field">
+                <label class="label" for="supervisorName">Supervisor Name</label>
+                <input class="input" id="supervisorName" name="supervisorName" placeholder="Enter Supervisor Name" />
+            </div>
+            <div class="field">
+                <label class="label" for="checkedBy">Checked by</label>
+                <input class="input" id="checkedBy" name="checkedBy" placeholder="Checked by" />
+            </div>
+            <div class="field">
+                <label class="label" for="approvedBy">Approved by</label>
+                <input class="input" id="approvedBy" name="approvedBy" placeholder="Approved by" />
+            </div>
+            <div class="field">
+                <label class="label" for="dateIn">Date In</label>
+                <input class="input" id="dateIn" name="dateIn" type="date" />
+            </div>
+            <div class="field">
+                <label class="label" for="dateOut">Date Out</label>
+                <input class="input" id="dateOut" name="dateOut" type="date" />
+            </div>
+        </div>
+
+        <!-- 模块化：渲染一张三列表格：项目 | 日期 | √ / X -->
+        <h3 class="section-title">Incoming Inspection / Core Management</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Date</th>
+                    <th>Result</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="row">
+                    <td class="item-cell">Exterior</td>
+                    <td><input class="date-input" type="date" name="incoming_exterior_date"></td>
+                    <td>
+                        <div class="check-wrap">
+                            <label class="radio"><input type="radio" name="incoming_exterior" value="pass"> √</label>
+                            <label class="radio"><input type="radio" name="incoming_exterior" value="fail"> X</label>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="row">
+                    <td class="item-cell">Housing</td>
+                    <td><input class="date-input" type="date" name="incoming_housing_date"></td>
+                    <td>
+                        <div class="check-wrap">
+                            <label class="radio"><input type="radio" name="incoming_housing" value="pass"> √</label>
+                            <label class="radio"><input type="radio" name="incoming_housing" value="fail"> X</label>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3 class="section-title">Disassembly Process</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Date</th>
+                    <th>Result</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="row"><td class="item-cell">Compressor housing</td><td><input class="date-input" type="date" name="dis_comp_housing_date"></td><td><div class="check-wrap"><label class="radio"><input type="radio" name="dis_comp_housing" value="pass"> √</label><label class="radio"><input type="radio" name="dis_comp_housing" value="fail"> X</label></div></td></tr>
+                <tr class="row"><td class="item-cell">Turbo housing</td><td><input class="date-input" type="date" name="dis_turbo_housing_date"></td><td><div class="check-wrap"><label class="radio"><input type="radio" name="dis_turbo_housing" value="pass"> √</label><label class="radio"><input type="radio" name="dis_turbo_housing" value="fail"> X</label></div></td></tr>
+                <tr class="row"><td class="item-cell">Compressor impeller</td><td><input class="date-input" type="date" name="dis_comp_impeller_date"></td><td><div class="check-wrap"><label class="radio"><input type="radio" name="dis_comp_impeller" value="pass"> √</label><label class="radio"><input type="radio" name="dis_comp_impeller" value="fail"> X</label></div></td></tr>
+                <tr class="row"><td class="item-cell">Inner components</td><td><input class="date-input" type="date" name="dis_inner_components_date"></td><td><div class="check-wrap"><label class="radio"><input type="radio" name="dis_inner_components" value="pass"> √</label><label class="radio"><input type="radio" name="dis_inner_components" value="fail"> X</label></div></td></tr>
+                <tr class="row"><td class="item-cell">Turbine impeller / shaft</td><td><input class="date-input" type="date" name="dis_turbine_impeller_date"></td><td><div class="check-wrap"><label class="radio"><input type="radio" name="dis_turbine_impeller" value="pass"> √</label><label class="radio"><input type="radio" name="dis_turbine_impeller" value="fail"> X</label></div></td></tr>
+                <tr class="row"><td class="item-cell">Control housing assembly</td><td><input class="date-input" type="date" name="dis_control_housing_date"></td><td><div class="check-wrap"><label class="radio"><input type="radio" name="dis_control_housing" value="pass"> √</label><label class="radio"><input type="radio" name="dis_control_housing" value="fail"> X</label></div></td></tr>
+            </tbody>
+        </table>
+
+        <h3 class="section-title">Cleaning / Paint</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Date</th>
+                    <th>Result</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="row"><td class="item-cell">Compressor housing</td><td><input class="date-input" type="date" name="cln_comp_housing_date"></td><td><div class="check-wrap"><label class="radio"><input type="radio" name="cln_comp_housing" value="pass"> √</label><label class="radio"><input type="radio" name="cln_comp_housing" value="fail"> X</label></div></td></tr>
+                <tr class="row"><td class="item-cell">Turbo housing</td><td><input class="date-input" type="date" name="cln_turbo_housing_date"></td><td><div class="check-wrap"><label class="radio"><input type="radio" name="cln_turbo_housing" value="pass"> √</label><label class="radio"><input type="radio" name="cln_turbo_housing" value="fail"> X</label></div></td></tr>
+                <tr class="row"><td class="item-cell">Compressor impeller</td><td><input class="date-input" type="date" name="cln_comp_impeller_date"></td><td><div class="check-wrap"><label class="radio"><input type="radio" name="cln_comp_impeller" value="pass"> √</label><label class="radio"><input type="radio" name="cln_comp_impeller" value="fail"> X</label></div></td></tr>
+                <tr class="row"><td class="item-cell">Inner components</td><td><input class="date-input" type="date" name="cln_inner_components_date"></td><td><div class="check-wrap"><label class="radio"><input type="radio" name="cln_inner_components" value="pass"> √</label><label class="radio"><input type="radio" name="cln_inner_components" value="fail"> X</label></div></td></tr>
+                <tr class="row"><td class="item-cell">Turbine impeller / shaft</td><td><input class="date-input" type="date" name="cln_turbine_impeller_date"></td><td><div class="check-wrap"><label class="radio"><input type="radio" name="cln_turbine_impeller" value="pass"> √</label><label class="radio"><input type="radio" name="cln_turbine_impeller" value="fail"> X</label></div></td></tr>
+                <tr class="row"><td class="item-cell">Control housing assembly</td><td><input class="date-input" type="date" name="cln_control_housing_date"></td><td><div class="check-wrap"><label class="radio"><input type="radio" name="cln_control_housing" value="pass"> √</label><label class="radio"><input type="radio" name="cln_control_housing" value="fail"> X</label></div></td></tr>
+            </tbody>
+        </table>
+
+        <h3 class="section-title">Remediate / Repair Activity</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Date</th>
+                    <th>Result</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="row"><td class="item-cell">Compressor housing</td><td><input class="date-input" type="date" name="rep_comp_housing_date"></td><td><div class="check-wrap"><label class="radio"><input type="radio" name="rep_comp_housing" value="pass"> √</label><label class="radio"><input type="radio" name="rep_comp_housing" value="fail"> X</label></div></td></tr>
+                <tr class="row"><td class="item-cell">Turbo housing</td><td><input class="date-input" type="date" name="rep_turbo_housing_date"></td><td><div class="check-wrap"><label class="radio"><input type="radio" name="rep_turbo_housing" value="pass"> √</label><label class="radio"><input type="radio" name="rep_turbo_housing" value="fail"> X</label></div></td></tr>
+                <tr class="row"><td class="item-cell">Compressor impeller / shaft</td><td><input class="date-input" type="date" name="rep_comp_impeller_date"></td><td><div class="check-wrap"><label class="radio"><input type="radio" name="rep_comp_impeller" value="pass"> √</label><label class="radio"><input type="radio" name="rep_comp_impeller" value="fail"> X</label></div></td></tr>
+                <tr class="row"><td class="item-cell">Control housing assembly</td><td><input class="date-input" type="date" name="rep_control_housing_date"></td><td><div class="check-wrap"><label class="radio"><input type="radio" name="rep_control_housing" value="pass"> √</label><label class="radio"><input type="radio" name="rep_control_housing" value="fail"> X</label></div></td></tr>
+            </tbody>
+        </table>
+
+        <h3 class="section-title">Re-assembly</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Date</th>
+                    <th>Result</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="row"><td class="item-cell">Turbocharger re-assembly</td><td><input class="date-input" type="date" name="reassembly_date"></td><td><div class="check-wrap"><label class="radio"><input type="radio" name="reassembly" value="pass"> √</label><label class="radio"><input type="radio" name="reassembly" value="fail"> X</label></div></td></tr>
+            </tbody>
+        </table>
+
+        <h3 class="section-title">Turbocharger Assembly Inspection</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Date</th>
+                    <th>Result</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="row"><td class="item-cell">QC Final Inspection</td><td><input class="date-input" type="date" name="qc_final_date"></td><td><div class="check-wrap"><label class="radio"><input type="radio" name="qc_final" value="pass"> √</label><label class="radio"><input type="radio" name="qc_final" value="fail"> X</label></div></td></tr>
+                <tr class="row"><td class="item-cell">Testing</td><td><input class="date-input" type="date" name="testing_date"></td><td><div class="check-wrap"><label class="radio"><input type="radio" name="testing" value="pass"> √</label><label class="radio"><input type="radio" name="testing" value="fail"> X</label></div></td></tr>
+                <tr class="row"><td class="item-cell">Labelling</td><td><input class="date-input" type="date" name="labelling_date"></td><td><div class="check-wrap"><label class="radio"><input type="radio" name="labelling" value="pass"> √</label><label class="radio"><input type="radio" name="labelling" value="fail"> X</label></div></td></tr>
+                <tr class="row"><td class="item-cell">Packaging / Storage / Install on truck</td><td><input class="date-input" type="date" name="packaging_date"></td><td><div class="check-wrap"><label class="radio"><input type="radio" name="packaging" value="pass"> √</label><label class="radio"><input type="radio" name="packaging" value="fail"> X</label></div></td></tr>
+            </tbody>
+        </table>
+
+        <div class="actions">
+            <button class="btn-submit" type="submit">SUBMIT</button>
+        </div>
+    </form>
+    
+</body>
+</html>
+
+
