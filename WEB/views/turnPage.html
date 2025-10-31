@@ -6,6 +6,13 @@
     <title>Select Checklist</title>
     <link rel="stylesheet" href="../styles/turnPage.css">
     <link rel="stylesheet" href="../styles/logoutStyle.css">
+    <style>
+        .top-actions { display:flex; justify-content: space-between; align-items:center; margin: 0 16px 8px 16px; }
+        .btn-back { padding:8px 14px; border:1px solid #e5e7eb; border-radius:8px; background:#fff; cursor:pointer; }
+        .card.completed { border:2px solid #10b981; background: #ecfdf5; }
+        .card.completed .card-text { color:#065f46; font-weight:700; }
+        .left-actions { position: fixed; top: 20px; left: 20px; z-index: 1000; }
+    </style>
 </head>
 <body>
     <div class="logout-container">
@@ -14,27 +21,32 @@
             <span class="logout-text">Logout</span>
         </button>
     </div>
+    <div class="left-actions">
+        <button class="logout-btn" onclick="window.location.href='../index.html'">
+            <span class="logout-text">Back to Scanner</span>
+        </button>
+    </div>
     <main class="page">
         <h1 class="title">Select Checklist</h1>
         <p class="subtitle">Please choose a component to open its checklist form</p>
 
         <section class="grid">
-            <a class="card" href="../Checklist Form/Alternator Form.html">
+            <a class="card" data-part="ALTERNATOR" href="../Checklist Form/Alternator Form.html">
                 <span class="card-text">ALTERNATOR</span>
             </a>
-            <a class="card" href="../Checklist Form/Brake System Form.html">
+            <a class="card" data-part="BRAKE SYSTEM" href="../Checklist Form/Brake System Form.html">
                 <span class="card-text">BRAKE SYSTEM</span>
             </a>
-            <a class="card" href="../Checklist Form/Starter Motor Form.html">
+            <a class="card" data-part="STARTER MOTOR" href="../Checklist Form/Starter Motor Form.html">
                 <span class="card-text">STARTER MOTOR</span>
             </a>
-            <a class="card" href="../Checklist Form/Turbocharger Form.html">
+            <a class="card" data-part="TURBOCHARGER" href="../Checklist Form/Turbocharger Form.html">
                 <span class="card-text">TURBOCHARGER</span>
             </a>
-            <a class="card" href="../Checklist Form/Intercooler Form.html">
+            <a class="card" data-part="INTERCOOLER" href="../Checklist Form/Intercooler Form.html">
                 <span class="card-text">INTERCOOLER</span>
             </a>
-            <a class="card" href="../Checklist Form/Radiator Form.html">
+            <a class="card" data-part="RADIATOR" href="../Checklist Form/Radiator Form.html">
                 <span class="card-text">RADIATOR</span>
             </a>
         </section>
@@ -47,6 +59,35 @@
             localStorage.removeItem('itx_userEmail');
             window.location.href = './authPage/login.html';
         }
+
+        // 标记已完成的模板，并将点击行为改为只读
+        (function() {
+            document.addEventListener('DOMContentLoaded', async function() {
+                const cserial = sessionStorage.getItem('itxCserialNo');
+                if (!cserial) return;
+                const cards = Array.from(document.querySelectorAll('.card[data-part]'));
+                for (const card of cards) {
+                    const part = card.getAttribute('data-part');
+                    try {
+                        const resp = await fetch('http://localhost:5202/get-checklist', {
+                            method: 'POST', headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ cserial_no: cserial, reman_part: part })
+                        });
+                        if (resp.ok) {
+                            // 有记录，标记完成颜色
+                            card.classList.add('completed');
+                            // 点击进入只读并传递 cserial
+                            const href = card.getAttribute('href');
+                            if (href) {
+                                const urlHasQuery = href.indexOf('?') >= 0;
+                                const newHref = href + (urlHasQuery ? '&' : '?') + 'readonly=1&cserial=' + encodeURIComponent(cserial);
+                                card.setAttribute('href', newHref);
+                            }
+                        }
+                    } catch (e) {}
+                }
+            });
+        })();
     </script>
 </body>
 </html>

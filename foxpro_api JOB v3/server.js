@@ -135,6 +135,244 @@ app.post('/login', async (req, res) => {
   }
 });
 
+// 获取用户信息端点
+app.post('/get-user-info', async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({
+      success: false,
+      error: 'Missing required parameter',
+      message: 'Please provide email'
+    });
+  }
+
+  try {
+    const request = pool.request();
+    request.input('email', sql.VarChar, email);
+
+    // 查询 ITX_User 表
+    const query = `
+      SELECT * FROM ITX_User
+      WHERE Login = @email
+    `;
+
+    const result = await request.query(query);
+
+    // 如果找不到用户
+    if (!result.recordset || result.recordset.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found',
+        message: `User with email ${email} not found`
+      });
+    }
+
+    // 返回用户信息
+    const user = result.recordset[0];
+    res.json({
+      success: true,
+      user: {
+        email: user.Login || '',
+        name: user.Name || '',
+        manager: user.Manager || ''
+      }
+    });
+  } catch (error) {
+    console.error('Error getting user info:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      message: error.message || 'Error occurred while getting user info'
+    });
+  }
+});
+
+// 新增：提交清单端点
+app.post('/submit-checklist', async (req, res) => {
+  const body = req.body || {};
+  const {
+    job_id,
+    cserial_no,
+    reman_part,              // 例如 'ALTERNATOR'
+    date_in,                 // Date_In (YYYY-MM-DD)
+    date_out,                // Date_Out (YYYY-MM-DD)
+    operator_name,           // OperatorNM
+    supervisor_name,         // SupervisorNM
+    section1_dates = [],     // 第一部分所有日期数组（字符串）
+    section2_dates = [],     // 第二部分所有日期数组
+    section3_dates = [],     // 第三部分所有日期数组
+    section1_radios = [],    // 第一部分所有 pass/fail 数组
+    section2_radios = [],    // 第二部分所有 pass/fail 数组
+    section3_radios = [],    // 第三部分所有 pass/fail 数组
+    remarks = []             // remark 文本数组（按顺序）
+  } = body;
+
+  if (!cserial_no || !reman_part) {
+    return res.status(400).json({
+      success: false,
+      error: 'Missing required parameters',
+      message: 'cserial_no and reman_part are required'
+    });
+  }
+
+  try {
+    const request = pool.request();
+    request.input('cserial_no', sql.VarChar, cserial_no);
+
+    // 取 dsoi 的 make 与 mgroup_id 以及 job_id
+    const dsoiQuery = `SELECT TOP 1 job_id, make, mgroup_id FROM dsoi WHERE cserial_no = @cserial_no`;
+    const dsoiResult = await request.query(dsoiQuery);
+    if (!dsoiResult.recordset || dsoiResult.recordset.length === 0) {
+      return res.status(400).json({ success: false, error: 'Invalid cserial_no', message: 'dsoi not found for given cserial_no' });
+    }
+    const { job_id: dsoi_job_id, make, mgroup_id } = dsoiResult.recordset[0];
+    const finalJobId = job_id || dsoi_job_id || null;
+    if (!finalJobId) {
+      return res.status(400).json({ success: false, error: 'Missing job_id', message: 'job_id not found in dsoi' });
+    }
+    const maker = `${make || ''}/${mgroup_id || ''}`;
+
+    // 取 partno
+    const partnoReq = pool.request();
+    partnoReq.input('mgroup_id', sql.VarChar, mgroup_id);
+    partnoReq.input('reman_part', sql.VarChar, reman_part);
+    const partnoQuery = `SELECT TOP 1 partno FROM mmgroup_partno WHERE mgroup_id = @mgroup_id AND reman_part = @reman_part`;
+    const partnoRes = await partnoReq.query(partnoQuery);
+    const partno = (partnoRes.recordset && partnoRes.recordset[0] && partnoRes.recordset[0].partno) || null;
+
+    // 生成下一个 wo_no（格式 WH/MO_E/101xxxxx）
+    const woReq = pool.request();
+    const lastWoQuery = `
+      SELECT TOP 1 wo_no FROM import_reman_part_ERP
+      WHERE wo_no LIKE 'WH/MO_E/101%'
+      ORDER BY CASE WHEN ISNUMERIC(RIGHT(wo_no, 8)) = 1 THEN CAST(RIGHT(wo_no, 8) AS INT) ELSE 0 END DESC
+    `;
+    const lastWoRes = await woReq.query(lastWoQuery);
+    let nextWo = 'WH/MO_E/10100001';
+    if (lastWoRes.recordset && lastWoRes.recordset.length > 0) {
+      const last = lastWoRes.recordset[0].wo_no || 'WH/MO_E/10100000';
+      const num = parseInt(last.slice(-8), 10) || 0;
+      const newNum = (num + 1).toString().padStart(8, '0');
+      nextWo = `WH/MO_E/101${newNum}`;
+    }
+
+    // 计算 Cat 状态与日期
+    const toDate = (s) => (s ? new Date(s) : null);
+    const maxDate = (arr) => {
+      const ds = arr.map(toDate).filter(Boolean);
+      if (ds.length === 0) return null;
+      return new Date(Math.max.apply(null, ds));
+    };
+    const fmtDateTime = (d) => d ? new Date(d) : null;
+
+    const Cat1_dt = maxDate(section1_dates);
+    const Cat2_dt = maxDate(section2_dates);
+    const Cat3_dt = maxDate(section3_dates);
+
+    const anyFail = (arr) => (arr || []).some(v => (v || '').toLowerCase() === 'fail');
+    const allPassOrEmpty = (arr) => (arr || []).length > 0 && (arr || []).every(v => (v || '').toLowerCase() === 'pass');
+
+    const Cat1_Status = allPassOrEmpty(section1_radios) && !anyFail(section1_radios) ? 1 : 0; // bit
+    const Cat2_Status = allPassOrEmpty(section2_radios) && !anyFail(section2_radios) ? 1 : 0; // bit
+    const Cat3_Status = !anyFail(section3_radios) && (section3_radios || []).length > 0 ? 'OK' : 'NG';
+
+    // Remarks 映射到 Rem1..Rem27
+    const remCols = {};
+    for (let i = 1; i <= 27; i++) {
+      remCols[`Rem${i}`] = remarks[i - 1] || null;
+    }
+
+    // 插入 import_reman_part_ERP
+    const insReq = pool.request();
+    insReq.input('job_id', sql.VarChar, finalJobId);
+    insReq.input('cserial_no', sql.VarChar, cserial_no);
+    insReq.input('reman_part', sql.VarChar, reman_part);
+    insReq.input('complete_status', sql.VarChar, '1');
+    insReq.input('completedt', sql.DateTime, fmtDateTime(date_out));
+    insReq.input('wo_no', sql.VarChar, nextWo);
+    insReq.input('maker', sql.VarChar, maker);
+    insReq.input('partno', sql.VarChar, partno);
+    insReq.input('OperatorNM', sql.VarChar, operator_name || null);
+    insReq.input('SupervisorNM', sql.VarChar, supervisor_name || null);
+    insReq.input('Date_In', sql.DateTime, fmtDateTime(date_in));
+    insReq.input('Date_Out', sql.DateTime, fmtDateTime(date_out));
+    insReq.input('Cat1_dt', sql.DateTime, Cat1_dt);
+    insReq.input('Cat1_Status', sql.Bit, Cat1_Status);
+    insReq.input('Cat2_dt', sql.DateTime, Cat2_dt);
+    insReq.input('Cat2_Status', sql.Bit, Cat2_Status);
+    insReq.input('Cat3_dt', sql.DateTime, Cat3_dt);
+    insReq.input('Cat3_Status', sql.VarChar, Cat3_Status);
+    insReq.input('file_path', sql.NVarChar, null);
+    insReq.input('tr_path', sql.NVarChar, null);
+
+    for (let i = 1; i <= 27; i++) {
+      insReq.input(`Rem${i}`, sql.NVarChar, remCols[`Rem${i}`]);
+    }
+
+    const insertSql = `
+      INSERT INTO import_reman_part_ERP (
+        job_id, cserial_no, reman_part, complete_status, completedt,
+        wo_no, maker, partno,
+        OperatorNM, SupervisorNM,
+        Date_In, Date_Out,
+        Cat1_dt, Cat1_Status,
+        Cat2_dt, Cat2_Status,
+        Cat3_dt, Cat3_Status,
+        Rem1, Rem2, Rem3, Rem4, Rem5, Rem6, Rem7, Rem8, Rem9, Rem10,
+        Rem11, Rem12, Rem13, Rem14, Rem15, Rem16, Rem17, Rem18, Rem19, Rem20,
+        Rem21, Rem22, Rem23, Rem24, Rem25, Rem26, Rem27,
+        file_path, tr_path
+      ) VALUES (
+        @job_id, @cserial_no, @reman_part, @complete_status, @completedt,
+        @wo_no, @maker, @partno,
+        @OperatorNM, @SupervisorNM,
+        @Date_In, @Date_Out,
+        @Cat1_dt, @Cat1_Status,
+        @Cat2_dt, @Cat2_Status,
+        @Cat3_dt, @Cat3_Status,
+        @Rem1, @Rem2, @Rem3, @Rem4, @Rem5, @Rem6, @Rem7, @Rem8, @Rem9, @Rem10,
+        @Rem11, @Rem12, @Rem13, @Rem14, @Rem15, @Rem16, @Rem17, @Rem18, @Rem19, @Rem20,
+        @Rem21, @Rem22, @Rem23, @Rem24, @Rem25, @Rem26, @Rem27,
+        @file_path, @tr_path
+      );
+    `;
+
+    await insReq.query(insertSql);
+
+    return res.json({ success: true, message: 'Checklist saved', wo_no: nextWo, job_id: finalJobId });
+  } catch (error) {
+    console.error('Error submitting checklist:', error);
+    return res.status(500).json({ success: false, error: 'Internal server error', message: error.message || 'Submit failed' });
+  }
+});
+
+// 获取清单记录端点
+app.post('/get-checklist', async (req, res) => {
+  const { cserial_no, reman_part } = req.body || {};
+  if (!cserial_no || !reman_part) {
+    return res.status(400).json({ success: false, error: 'Missing parameters', message: 'cserial_no and reman_part are required' });
+  }
+  try {
+    const request = pool.request();
+    request.input('cserial_no', sql.VarChar, cserial_no);
+    request.input('reman_part', sql.VarChar, reman_part);
+    const query = `
+      SELECT TOP 1 * FROM import_reman_part_ERP
+      WHERE cserial_no = @cserial_no AND reman_part = @reman_part
+      ORDER BY pk DESC
+    `;
+    const result = await request.query(query);
+    if (!result.recordset || result.recordset.length === 0) {
+      return res.status(404).json({ success: false, error: 'Not found', message: 'No checklist found' });
+    }
+    return res.json({ success: true, record: result.recordset[0] });
+  } catch (e) {
+    console.error('Error get-checklist:', e);
+    return res.status(500).json({ success: false, error: 'Internal server error', message: e.message || 'Failed to get checklist' });
+  }
+});
+
 // 条码查询端点：根据 cserial_no 返回六个模板是否已存在
 app.post('/itx-barcode-data', async (req, res) => {
   const cserial_no = (req.body && req.body.cserial_no) || req.query.cserial_no;
@@ -660,6 +898,7 @@ app.use((req, res) => {
       'GET /health',
       'GET /templates',
       'POST /login',
+      'POST /get-user-info',
       'POST /itx-barcode-data',
       'POST /generate-pdf',
       'POST /generate-pdf-batch',

@@ -6,12 +6,20 @@
     <title>Alternator Form</title>
     <link rel="stylesheet" href="../styles/formStyle.css">
     <link rel="stylesheet" href="../styles/logoutStyle.css">
+    <style>
+        .left-actions { position: fixed; top: 20px; left: 20px; z-index: 1000; }
+    </style>
 </head>
 <body>
     <div class="logout-container">
         <button class="logout-btn" onclick="handleLogout()">
-            <img src="../../assets/img/logout_icon.png" alt="Logout" class="logout-icon">
+            <img src="../assets/img/logout_icon.png" alt="Logout" class="logout-icon">
             <span class="logout-text">Logout</span>
+        </button>
+    </div>
+    <div class="left-actions">
+        <button class="logout-btn" type="button" onclick="window.location.href='../views/turnPage.html'">
+            <span class="logout-text">Back to Select</span>
         </button>
     </div>
     <form class="page">
@@ -25,11 +33,11 @@
             </div>
             <div class="field">
                 <label class="label" for="operatorName">Operator Name</label>
-                <input class="input" id="operatorName" name="operatorName" placeholder="Enter Operator Name" />
+                <input class="input" id="operatorName" name="operatorName" placeholder="Enter Operator Name" readonly />
             </div>
             <div class="field">
                 <label class="label" for="supervisorName">Supervisor Name</label>
-                <input class="input" id="supervisorName" name="supervisorName" placeholder="Enter Supervisor Name" />
+                <input class="input" id="supervisorName" name="supervisorName" placeholder="Enter Supervisor Name" readonly />
             </div>
             <div class="field">
                 <label class="label" for="dateIn">Date In</label>
@@ -130,16 +138,120 @@
     
     <script src="../javascript/formScript.js"></script>
     <script>
-        // 页面加载时从 sessionStorage 获取 cserial_no 并填充到 chassisNo
+        // 页面加载时从 sessionStorage 获取 cserial_no 并填充到 chassisNo，以及获取用户信息
         (function() {
-            document.addEventListener('DOMContentLoaded', function() {
+            function getQueryParam(name){const url=new URL(window.location.href);return url.searchParams.get(name);}            
+            document.addEventListener('DOMContentLoaded', async function() {
+                // 只读模式开关
+                const readonly = getQueryParam('readonly') === '1';
+
+                // 填充 chassisNo
                 const chassisNoInput = document.getElementById('chassisNo');
                 if (chassisNoInput) {
-                    // 从 sessionStorage 获取 cserial_no
-                    const cserialNo = sessionStorage.getItem('itxCserialNo');
+                    let cserialNo = sessionStorage.getItem('itxCserialNo');
+                    const cserialFromQuery = getQueryParam('cserial');
+                    if (!cserialNo && cserialFromQuery) cserialNo = cserialFromQuery;
                     if (cserialNo) {
                         chassisNoInput.value = cserialNo;
                     }
+                }
+
+                // 获取并填充用户信息（仅非只读时）
+                if (!readonly) {
+                    const userEmail = localStorage.getItem('itx_userEmail');
+                    if (userEmail) {
+                        try {
+                            const response = await fetch('http://localhost:5202/get-user-info', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: userEmail }) });
+                            const data = await response.json();
+                            if (data.success && data.user) {
+                                const operatorNameInput = document.getElementById('operatorName');
+                                if (operatorNameInput && data.user.name) operatorNameInput.value = data.user.name;
+                                const supervisorNameInput = document.getElementById('supervisorName');
+                                if (supervisorNameInput && data.user.manager) supervisorNameInput.value = data.user.manager;
+                            }
+                        } catch (error) { console.error('Error fetching user info:', error); }
+                    }
+                }
+
+                // 如果只读：禁用所有输入，并从服务器加载已保存的数据进行填充
+                if (readonly) {
+                    // 禁用所有输入
+                    document.querySelectorAll('input, textarea, select, button[type="submit"]').forEach(el => {
+                        if (el.id === 'chassisNo') return; // 底盘号保持可见不可改
+                        if (el.type === 'button') return;
+                        el.disabled = true;
+                        if (el.tagName === 'INPUT' && (el.type === 'text' || el.type === 'date')) {
+                            el.readOnly = true;
+                        }
+                    });
+
+                    // 拉取保存数据
+                    const cserial = chassisNoInput?.value || '';
+                    try {
+                        const resp = await fetch('http://localhost:5202/get-checklist', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cserial_no: cserial, reman_part: 'ALTERNATOR' }) });
+                        if (resp.ok) {
+                            const payload = await resp.json();
+                            const rec = payload.record || {};
+                            // 填充基本字段
+                            const operatorNameInput = document.getElementById('operatorName');
+                            if (operatorNameInput) operatorNameInput.value = rec.OperatorNM || '';
+                            const supervisorNameInput = document.getElementById('supervisorName');
+                            if (supervisorNameInput) supervisorNameInput.value = rec.SupervisorNM || '';
+                            const dateInInput = document.getElementById('dateIn');
+                            if (dateInInput && rec.Date_In) dateInInput.value = (new Date(rec.Date_In)).toISOString().slice(0,10);
+                            const dateOutInput = document.getElementById('dateOut');
+                            if (dateOutInput && rec.Date_Out) dateOutInput.value = (new Date(rec.Date_Out)).toISOString().slice(0,10);
+                            // 填充备注：按 Rem1..Rem27 顺序映射到 .remark_input
+                            const rems = [];
+                            for (let i=1;i<=27;i++){ rems.push(rec['Rem'+i] || ''); }
+                            const remarkInputs = Array.from(document.querySelectorAll('.remark_input'));
+                            for (let i=0;i<remarkInputs.length && i<rems.length;i++) {
+                                remarkInputs[i].value = rems[i];
+                            }
+                        }
+                    } catch (e) { console.error(e); }
+                }
+
+                // 绑定提交（只在非只读）
+                if (!readonly) {
+                    const formEl = document.querySelector('form.page');
+                    formEl && formEl.addEventListener('submit', async function(e) {
+                        e.preventDefault();
+
+                        const cserial = (document.getElementById('chassisNo')?.value || '').trim();
+                        const remanPart = 'ALTERNATOR';
+                        const operatorName = document.getElementById('operatorName')?.value || '';
+                        const supervisorName = document.getElementById('supervisorName')?.value || '';
+                        const dateIn = (document.getElementById('dateIn')?.value || '').trim();
+                        const dateOut = (document.getElementById('dateOut')?.value || '').trim();
+
+                        function collectDates(prefix) { return Array.from(document.querySelectorAll(`input.date-input[name^="${prefix}"]`)).map(i => i.value).filter(Boolean); }
+                        const section1Dates = collectDates('sec1_');
+                        const section2Dates = collectDates('sec2_');
+                        const section3Dates = collectDates('sec3_');
+
+                        function collectRadios(prefix) {
+                            const names = new Set();
+                            Array.from(document.querySelectorAll(`input[type="radio"][name^="${prefix}"]`)).forEach(r => names.add(r.name));
+                            const vals = []; names.forEach(n => { const checked = document.querySelector(`input[type="radio"][name="${n}"]:checked`); if (checked) vals.push(checked.value); });
+                            return vals;
+                        }
+                        const section1Radios = collectRadios('sec1_');
+                        const section2Radios = collectRadios('sec2_');
+                        const section3Radios = collectRadios('sec3_');
+
+                        const remarks = Array.from(document.querySelectorAll('.remark_input')).map(i => (i.value || '').trim());
+                        if (!cserial) { alert('Missing chassis no.'); return; }
+
+                        try {
+                            const resp = await fetch('http://localhost:5202/submit-checklist', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cserial_no: cserial, reman_part: remanPart, date_in: dateIn, date_out: dateOut, operator_name: operatorName, supervisor_name: supervisorName, section1_dates: section1Dates, section2_dates: section2Dates, section3_dates: section3Dates, section1_radios: section1Radios, section2_radios: section2Radios, section3_radios: section3Radios, remarks }) });
+                            const data = await resp.json();
+                            if (!resp.ok || !data.success) { alert(data.message || 'Submit failed'); return; }
+                            alert(`Saved successfully. WO No: ${data.wo_no}`);
+                            // 保存后返回选择页
+                            window.location.href = '../views/turnPage.html';
+                        } catch (err) { console.error(err); alert('Submit failed'); }
+                    });
                 }
             });
         })();
@@ -148,7 +260,7 @@
         function handleLogout() {
             localStorage.removeItem('itx_isLoggedIn');
             localStorage.removeItem('itx_userEmail');
-            window.location.href = '../../views/authPage/login.html';
+            window.location.href = '../views/authPage/login.html';
         }
     </script>
 </body>
