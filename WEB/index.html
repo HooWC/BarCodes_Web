@@ -6,6 +6,12 @@
     <title>Scanner</title>
     <link rel="stylesheet" href="./styles/scanStyle.css">
     <link rel="stylesheet" href="./styles/logoutStyle.css">
+    <style>
+        /* remark_input style replicated for manual input */
+        .remark_input { width:100%; height:44px; padding:0 16px; border-radius:8px; border:1px solid #e5e6eb; background:#fff; outline:none; font-size:14px; }
+        .remark_input:focus { border-color:#7a52cc; box-shadow:0 0 0 3px rgba(122,82,204,0.12); }
+        .hidden { display:none; }
+    </style>
 </head>
 <body>
     <div class="logout-container">
@@ -29,8 +35,11 @@
             <div id="reader"></div>
 
             <div class="result-container">
-                <h3>Scan Result</h3>
-                <div id="result" class="no-result">Waiting...</div>
+               <!--  <div id="result" class="hidden"></div> -->
+                <div style="margin-top:10px; display:flex; gap:8px; align-items:center;">
+                    <input id="manualCserial" class="remark_input" placeholder="Enter Chassis No." />
+                    <button type="button" id="manualSubmit" style="height:44px; padding:0 14px;">Search</button>
+                </div>
             </div>
         </div>
     </div>

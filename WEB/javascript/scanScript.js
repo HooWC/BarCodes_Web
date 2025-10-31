@@ -3,114 +3,122 @@ let html5QrcodeScanner = null;
         const startBtn = document.getElementById('startBtn');
         const stopBtn = document.getElementById('stopBtn');
         const resultDiv = document.getElementById('result');
+        const manualInput = document.getElementById('manualCserial');
+        const manualSubmit = document.getElementById('manualSubmit');
+
+        async function goWithCserial(cserial){
+            const val = (cserial || '').trim();
+            if (!val) return;
+            try {
+                if (html5QrcodeScanner) {
+                    await html5QrcodeScanner.stop().catch(() => {});
+                    startBtn.disabled = false;
+                    stopBtn.disabled = true;
+                }
+                const resp = await fetch('http://localhost:5202/itx-barcode-data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cserial_no: val })
+                });
+                const data = await resp.json();
+                if (!resp.ok || (data && !data.success)) {
+                    if (resp.status === 404 || (data && data.error === 'Chassis number not found')) {
+                        alert(data.message || `Cannot find this chassis no: ${val}`);
+                        return;
+                    }
+                    throw new Error(data.message || `API error ${resp.status}`);
+                }
+                sessionStorage.setItem('itxBarcodeResult', JSON.stringify(data));
+                sessionStorage.setItem('itxCserialNo', val);
+                window.location.href = './views/turnPage.html';
+            } catch (err) {
+                console.error(err);
+                alert(err.message || 'Template status query failed, please try again.');
+            }
+        }
 
         // 扫描成功回调
         function onScanSuccess(decodedText, decodedResult) {
             console.log(`扫描成功: ${decodedText}`, decodedResult);
             
             // 显示结果
-            resultDiv.className = 'success-result';
-            resultDiv.textContent = decodedText;
-
-            try {
-                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGGS77+ipUxELTqni+a5jHAc5j9bz0X8sBS1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGS55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsK');
-                audio.play();
-            } catch (e) {
-                console.log('Unable to play notification sound');
+            if (resultDiv) {
+                resultDiv.className = 'success-result';
+                resultDiv.textContent = decodedText;
             }
 
-			// 调用后端 API 并跳转到表单选择页
-			(async () => {
-				const cserial = (decodedText || '').trim();
-				if (!cserial) return;
-				try {
-					if (html5QrcodeScanner) {
-						await html5QrcodeScanner.stop().catch(() => {});
-						startBtn.disabled = false;
-						stopBtn.disabled = true;
-					}
-					const resp = await fetch('http://localhost:5202/itx-barcode-data', {
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({ cserial_no: cserial })
-					});
-					
-					const data = await resp.json();
-					
-					// 检查是否成功
-					if (!resp.ok || (data && !data.success)) {
-						// 如果是找不到 chassis no 的错误，显示特定消息
-						if (resp.status === 404 || (data && data.error === 'Chassis number not found')) {
-							alert(data.message || `Cannot find this chassis no: ${cserial}`);
-							return;
-						}
-						throw new Error(data.message || `API error ${resp.status}`);
-					}
-					
-					sessionStorage.setItem('itxBarcodeResult', JSON.stringify(data));
-					// 记录原始 cserial_no，供标题显示
-					sessionStorage.setItem('itxCserialNo', cserial);
-					window.location.href = './views/turnPage.html';
-				} catch (err) {
-					console.error(err);
-					alert(err.message || 'Template status query failed, please try again.');
-				}
-			})();
+            // 使用扫描到的序列号前进
+            goWithCserial(decodedText);
         }
 
-        // 扫描失败回调（可选）
-        function onScanError(errorMessage) {
-            // 不需要对每个错误都做处理，扫描过程中会有很多失败
-            // console.log(`扫描错误: ${errorMessage}`);
-        }
-
-        // 开始扫描
-        startBtn.addEventListener('click', function() {
-            // 确保存在扫码容器
-            let readerEl = document.getElementById('reader');
-            if (!readerEl) {
-                readerEl = document.createElement('div');
-                readerEl.id = 'reader';
-                document.querySelector('.scanner-container')?.appendChild(readerEl);
+        // 扫描失败回调
+        function onScanError(error) {
+            console.error('扫描失败:', error);
+            if (resultDiv) {
+                resultDiv.className = 'error-result';
+                resultDiv.textContent = error.message;
             }
-            html5QrcodeScanner = new Html5Qrcode('reader');
-            
-            const readerRect = readerEl.getBoundingClientRect();
-            const config = {
-                fps: 10,
-                qrbox: { width: Math.floor(readerRect.width), height: Math.floor(readerRect.height) },
-                aspectRatio: readerRect.width / Math.max(1, readerRect.height)
-            };
+        }
 
-            // 启动相机扫描
-            html5QrcodeScanner.start(
-                { facingMode: "environment" },
-                config,
-                onScanSuccess,
-                onScanError
-            ).then(() => {
-                startBtn.disabled = true;
-                stopBtn.disabled = false;
-                resultDiv.className = 'no-result';
-                resultDiv.textContent = 'Scanning...';
-            }).catch(err => {
-                alert(`Cannot start camera: ${err}`);
-                console.error(err);
+        // 手动提交
+        if (manualSubmit) {
+            manualSubmit.addEventListener('click', function(e){
+                e.preventDefault();
+                const val = manualInput ? manualInput.value : '';
+                goWithCserial(val);
             });
-        });
+        }
+        if (manualInput) {
+            manualInput.addEventListener('keydown', function(e){
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    goWithCserial(manualInput.value);
+                }
+            });
+        }
 
-        // 停止扫描
-        stopBtn.addEventListener('click', function() {
-            if (html5QrcodeScanner) {
-                html5QrcodeScanner.stop().then(() => {
-                    startBtn.disabled = false;
-                    stopBtn.disabled = true;
-                    resultDiv.className = 'no-result';
-                    resultDiv.textContent = 'Scanning stopped';
+        // 开始扫描按钮点击事件
+        if (startBtn) {
+            startBtn.addEventListener('click', function() {
+                // 确保存在扫码容器
+                let readerEl = document.getElementById('reader');
+                if (!readerEl) {
+                    readerEl = document.createElement('div');
+                    readerEl.id = 'reader';
+                    document.querySelector('.scanner-container')?.appendChild(readerEl);
+                }
+                html5QrcodeScanner = new Html5Qrcode('reader');
+                
+                const rect = readerEl.getBoundingClientRect();
+                const width = Math.floor(rect.width || 0);
+                const height = Math.floor(rect.height || 0);
+                const fallbackWidth = 480;
+                const fallbackHeight = 320;
+                const useFallback = width < 50 || height < 50;
+                const cfgWidth = useFallback ? fallbackWidth : width;
+                const cfgHeight = useFallback ? fallbackHeight : height;
+                const config = {
+                    fps: 10,
+                    qrbox: { width: cfgWidth, height: cfgHeight },
+                    aspectRatio: cfgWidth / Math.max(1, cfgHeight)
+                };
+
+                // 启动相机扫描
+                html5QrcodeScanner.start(
+                    { facingMode: "environment" },
+                    config,
+                    onScanSuccess,
+                    onScanError
+                ).then(() => {
+                    startBtn.disabled = true;
+                    stopBtn.disabled = false;
+                    if (resultDiv) {
+                        resultDiv.className = 'no-result';
+                        resultDiv.textContent = 'Scanning...';
+                    }
                 }).catch(err => {
-                    console.error(err);
+                    alert(`Cannot start camera: ${err}`);
+                    console.error('Camera start failed:', err, 'config used:', config);
                 });
-            }
-        });
-
-        
+            });
+        }

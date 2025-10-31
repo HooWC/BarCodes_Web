@@ -273,11 +273,10 @@
                         try {
                             const resp = await fetch('http://localhost:5202/submit-checklist', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cserial_no: cserial, reman_part: remanPart, date_in: dateIn, date_out: dateOut, operator_name: operatorName, supervisor_name: supervisorName, section1_dates: section1Dates, section2_dates: section2Dates, section3_dates: section3Dates, section1_radios: section1Radios, section2_radios: section2Radios, section3_radios: section3Radios, remarks }) });
                             const data = await resp.json();
-                            if (!resp.ok || !data.success) { alert(data.message || 'Submit failed'); return; }
-                            alert(`Saved successfully. WO No: ${data.wo_no}`);
+                            if (!resp.ok || !data.success) { return; }
                             // 保存后返回选择页
                             window.location.href = '../views/turnPage.html';
-                        } catch (err) { console.error(err); alert('Submit failed'); }
+                        } catch (err) { console.error(err); }
                     });
                 }
             });

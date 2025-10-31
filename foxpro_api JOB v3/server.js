@@ -231,11 +231,13 @@ app.post('/submit-checklist', async (req, res) => {
     if (!finalJobId) {
       return res.status(400).json({ success: false, error: 'Missing job_id', message: 'job_id not found in dsoi' });
     }
-    const maker = `${make || ''}/${mgroup_id || ''}`;
+    const makeTrim = (make || '').trim();
+    const mgroupTrim = (mgroup_id || '').trim();
+    const maker = `${makeTrim}/${mgroupTrim}`;
 
     // 取 partno
     const partnoReq = pool.request();
-    partnoReq.input('mgroup_id', sql.VarChar, mgroup_id);
+    partnoReq.input('mgroup_id', sql.VarChar, mgroupTrim);
     partnoReq.input('reman_part', sql.VarChar, reman_part);
     const partnoQuery = `SELECT TOP 1 partno FROM mmgroup_partno WHERE mgroup_id = @mgroup_id AND reman_part = @reman_part`;
     const partnoRes = await partnoReq.query(partnoQuery);
@@ -340,7 +342,28 @@ app.post('/submit-checklist', async (req, res) => {
 
     await insReq.query(insertSql);
 
-    return res.json({ success: true, message: 'Checklist saved', wo_no: nextWo, job_id: finalJobId });
+    // 异步生成 PDF 与 测试报告（不阻塞响应）
+    (async () => {
+      try {
+        const getReq = pool.request();
+        getReq.input('cserial_no', sql.VarChar, cserial_no);
+        getReq.input('reman_part', sql.VarChar, reman_part);
+        const getSql = `SELECT TOP 1 * FROM import_reman_part_ERP WHERE cserial_no=@cserial_no AND reman_part=@reman_part ORDER BY pk DESC`;
+        const getRes = await getReq.query(getSql);
+        if (getRes.recordset && getRes.recordset[0]) {
+          const dataRow = getRes.recordset[0];
+          try { await processSingleRecord(dataRow, 1, 1); } catch (e) { console.error('generate-pdf (async) failed:', e); }
+        }
+      } catch (e) { console.error('post-insert fetch for pdf failed:', e); }
+
+      try {
+        if (finalJobId) {
+          await processRecordsByJobIdAndPart(finalJobId, reman_part);
+        }
+      } catch (e) { console.error('generate-test-report (async) failed:', e); }
+    })();
+
+    return res.status(200).json({ success: true, message: 'Checklist saved', wo_no: nextWo, job_id: finalJobId });
   } catch (error) {
     console.error('Error submitting checklist:', error);
     return res.status(500).json({ success: false, error: 'Internal server error', message: error.message || 'Submit failed' });

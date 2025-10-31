@@ -99,7 +99,7 @@
       const supervisorName = document.getElementById('supervisorName')?.value || '';
       const dateIn = (document.getElementById('dateIn')?.value || '').trim();
       const dateOut = (document.getElementById('dateOut')?.value || '').trim();
-      if (!cserial) { alert('Missing chassis no.'); return; }
+      if (!cserial) { return; }
 
       const section1Dates = collectDates('sec1_');
       const section2Dates = collectDates('sec2_');
@@ -125,10 +125,9 @@
           section3_radios: section3Radios,
           remarks
         });
-        if (!ok || !data || !data.success) { alert((data && data.message) || 'Submit failed'); return; }
-        alert('Saved successfully. WO No: ' + data.wo_no);
+        if (!ok || !data || !data.success) { return; }
         window.location.href = '../views/turnPage.html';
-      } catch(e) { console.error(e); alert('Submit failed'); }
+      } catch(e) { console.error(e); }
     });
   }
 
