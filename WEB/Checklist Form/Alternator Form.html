@@ -7,7 +7,9 @@
     <link rel="stylesheet" href="../styles/formStyle.css">
     <link rel="stylesheet" href="../styles/logoutStyle.css">
     <style>
-        .left-actions { position: fixed; top: 20px; left: 20px; z-index: 1000; }
+        .left-actions { position: fixed; top: 16px; left: 20px; z-index: 1000; }
+        .logout-container { top: 16px; }
+        .left-actions .logout-btn, .logout-container .logout-btn { height: 36px; padding: 6px 14px; display: inline-flex; align-items: center; }
     </style>
 </head>
 <body>
@@ -19,7 +21,8 @@
     </div>
     <div class="left-actions">
         <button class="logout-btn" type="button" onclick="window.location.href='../views/turnPage.html'">
-            <span class="logout-text">Back to Select</span>
+            <img src="../assets/img/back_icon.png" alt="Logout" class="logout-icon">
+            <span class="logout-text">Back</span>
         </button>
     </div>
     <form class="page">
@@ -201,6 +204,30 @@
                             if (dateInInput && rec.Date_In) dateInInput.value = (new Date(rec.Date_In)).toISOString().slice(0,10);
                             const dateOutInput = document.getElementById('dateOut');
                             if (dateOutInput && rec.Date_Out) dateOutInput.value = (new Date(rec.Date_Out)).toISOString().slice(0,10);
+
+                            // Section 1/2/3 各项日期以 Cat*_dt 展示；勾选以 Cat*_Status 展示
+                            function setSectionDates(prefix, dt) {
+                                const v = dt ? (new Date(dt)).toISOString().slice(0,10) : '';
+                                document.querySelectorAll(`input.date-input[name^="${prefix}"]`).forEach(i => { i.value = v; });
+                            }
+                            function setSectionRadios(prefix, isPass) {
+                                const names = new Set();
+                                document.querySelectorAll(`input[type="radio"][name^="${prefix}"]`).forEach(r => names.add(r.name));
+                                names.forEach(n => {
+                                    const target = document.querySelector(`input[type="radio"][name="${n}"][value="${isPass ? 'pass' : 'fail'}"]`);
+                                    if (target) target.checked = true;
+                                });
+                            }
+                            // Section 1
+                            setSectionDates('sec1_', rec.Cat1_dt);
+                            setSectionRadios('sec1_', !!rec.Cat1_Status);
+                            // Section 2
+                            setSectionDates('sec2_', rec.Cat2_dt);
+                            setSectionRadios('sec2_', !!rec.Cat2_Status);
+                            // Section 3
+                            setSectionDates('sec3_', rec.Cat3_dt);
+                            setSectionRadios('sec3_', String(rec.Cat3_Status || '').toUpperCase() === 'OK');
+
                             // 填充备注：按 Rem1..Rem27 顺序映射到 .remark_input
                             const rems = [];
                             for (let i=1;i<=27;i++){ rems.push(rec['Rem'+i] || ''); }

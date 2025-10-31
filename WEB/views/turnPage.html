@@ -11,7 +11,10 @@
         .btn-back { padding:8px 14px; border:1px solid #e5e7eb; border-radius:8px; background:#fff; cursor:pointer; }
         .card.completed { border:2px solid #10b981; background: #ecfdf5; }
         .card.completed .card-text { color:#065f46; font-weight:700; }
-        .left-actions { position: fixed; top: 20px; left: 20px; z-index: 1000; }
+        .left-actions { position: fixed; top: 16px; left: 20px; z-index: 1000; }
+        .logout-container { top: 16px; }
+        .left-actions .logout-btn, .logout-container .logout-btn { height: 36px; padding: 6px 14px; display: inline-flex; align-items: center; }
+        .card .card-text { display: block; text-align: center; font-weight: 700; letter-spacing: .3px; line-height: 1.2; }
     </style>
 </head>
 <body>
@@ -23,7 +26,8 @@
     </div>
     <div class="left-actions">
         <button class="logout-btn" onclick="window.location.href='../index.html'">
-            <span class="logout-text">Back to Scanner</span>
+            <img src="../assets/img/back_icon.png" alt="Logout" class="logout-icon">
+            <span class="logout-text">Back</span>
         </button>
     </div>
     <main class="page">

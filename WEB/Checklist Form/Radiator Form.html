@@ -6,12 +6,23 @@
     <title>Radiator Form</title>
     <link rel="stylesheet" href="../styles/formStyle.css">
     <link rel="stylesheet" href="../styles/logoutStyle.css">
+    <style>
+        .left-actions { position: fixed; top: 16px; left: 20px; z-index: 1000; }
+        .logout-container { top: 16px; }
+        .left-actions .logout-btn, .logout-container .logout-btn { height: 36px; padding: 6px 14px; display: inline-flex; align-items: center; }
+    </style>
 </head>
 <body>
     <div class="logout-container">
         <button class="logout-btn" onclick="handleLogout()">
-            <img src="../../assets/img/logout_icon.png" alt="Logout" class="logout-icon">
+            <img src="../assets/img/logout_icon.png" alt="Logout" class="logout-icon">
             <span class="logout-text">Logout</span>
+        </button>
+    </div>
+    <div class="left-actions">
+        <button class="logout-btn" type="button" onclick="window.location.href='../views/turnPage.html'">
+            <img src="../assets/img/back_icon.png" alt="Logout" class="logout-icon">
+            <span class="logout-text">Back</span>
         </button>
     </div>
     <form class="page">
@@ -21,15 +32,15 @@
         <div class="grid-2">
             <div class="field">
                 <label class="label" for="chassisNo">Chassis No.</label>
-                <input class="input" id="chassisNo" name="chassisNo" placeholder="Enter Chassis No." />
+                <input class="input" id="chassisNo" name="chassisNo" placeholder="Enter Chassis No." readonly />
             </div>
             <div class="field">
                 <label class="label" for="operatorName">Operator Name</label>
-                <input class="input" id="operatorName" name="operatorName" placeholder="Enter Operator Name" />
+                <input class="input" id="operatorName" name="operatorName" placeholder="Enter Operator Name" readonly />
             </div>
             <div class="field">
                 <label class="label" for="supervisorName">Supervisor Name</label>
-                <input class="input" id="supervisorName" name="supervisorName" placeholder="Enter Supervisor Name" />
+                <input class="input" id="supervisorName" name="supervisorName" placeholder="Enter Supervisor Name" readonly />
             </div>
             <div class="field">
                 <label class="label" for="dateIn">Date In</label>
@@ -128,13 +139,15 @@
     </form>
     
     <script src="../javascript/formScript.js"></script>
+    <script src="../javascript/checklistCommon.js"></script>
     <script>
         // 登出功能
         function handleLogout() {
             localStorage.removeItem('itx_isLoggedIn');
             localStorage.removeItem('itx_userEmail');
-            window.location.href = '../../views/authPage/login.html';
+            window.location.href = '../views/authPage/login.html';
         }
+        document.addEventListener('DOMContentLoaded', function(){ initChecklistForm('RADIATOR'); });
     </script>
 </body>
 </html>
