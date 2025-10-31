@@ -12,17 +12,17 @@ const { PDFDocument, StandardFonts, rgb, degrees } = require("pdf-lib");
 
 // 数据库配置
 const dbConfig = {
-  user: "InfoHSA",
-  password: "hsonline", 
+  user: "api_hsa_user",           
+  password: "1F9UXy$H31w6zg8X;H[9", 
   server: "HSPDC",
   database: "InfoHSA",
   options: {
     trustServerCertificate: true,
     encrypt: false,
     cryptoCredentialsDetails: {
-      minVersion: 'TLSv1'
-    }
-  }
+      minVersion: 'TLSv1',
+    },
+  },
 };
 
 // 模板列表缓存

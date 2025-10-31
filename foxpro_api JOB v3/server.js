@@ -26,8 +26,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // 数据库配置
 const dbConfig = {
-  user: "InfoHSA",
-  password: "hsonline",
+  user: "api_hsa_user",           
+  password: "1F9UXy$H31w6zg8X;H[9", 
   server: "HSPDC",
   database: "InfoHSA",
   options: {
@@ -95,6 +95,25 @@ app.post('/itx-barcode-data', async (req, res) => {
     const request = pool.request();
     request.input('cserial_no', sql.VarChar, cserial_no);
 
+    // 先查询 dsoi 表，确认是否存在该 chassis no
+    const dsoiQuery = `
+      SELECT * FROM dsoi
+      WHERE cserial_no = @cserial_no
+    `;
+    
+    const dsoiResult = await request.query(dsoiQuery);
+    
+    // 如果 dsoi 表中没有找到，返回错误
+    if (!dsoiResult.recordset || dsoiResult.recordset.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Chassis number not found',
+        message: `Cannot find this chassis no: ${cserial_no}`,
+        cserial_no: cserial_no
+      });
+    }
+
+    // 如果找到了，继续查询 import_reman_part_ERP
     const query = `
       SELECT DISTINCT reman_part
       FROM import_reman_part_ERP

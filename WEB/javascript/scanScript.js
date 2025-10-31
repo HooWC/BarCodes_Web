@@ -3,9 +3,6 @@ let html5QrcodeScanner = null;
         const startBtn = document.getElementById('startBtn');
         const stopBtn = document.getElementById('stopBtn');
         const resultDiv = document.getElementById('result');
-        
-
-        
 
         // 扫描成功回调
         function onScanSuccess(decodedText, decodedResult) {
@@ -15,9 +12,6 @@ let html5QrcodeScanner = null;
             resultDiv.className = 'success-result';
             resultDiv.textContent = decodedText;
 
-            
-
-            // 播放提示音（可选）
             try {
                 const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGGS77+ipUxELTqni+a5jHAc5j9bz0X8sBS1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGS55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0X8sBi1+zPLaizsKGGS55+mqUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsKGGO55+mrUxELTqfi+a1jHAc5j9bz0YAsBi1+zPLaizsK');
                 audio.play();
@@ -40,17 +34,26 @@ let html5QrcodeScanner = null;
 						headers: { 'Content-Type': 'application/json' },
 						body: JSON.stringify({ cserial_no: cserial })
 					});
-					if (!resp.ok) {
-						throw new Error(`API error ${resp.status}`);
-					}
+					
 					const data = await resp.json();
+					
+					// 检查是否成功
+					if (!resp.ok || (data && !data.success)) {
+						// 如果是找不到 chassis no 的错误，显示特定消息
+						if (resp.status === 404 || (data && data.error === 'Chassis number not found')) {
+							alert(data.message || `Cannot find this chassis no: ${cserial}`);
+							return;
+						}
+						throw new Error(data.message || `API error ${resp.status}`);
+					}
+					
 					sessionStorage.setItem('itxBarcodeResult', JSON.stringify(data));
 					// 记录原始 cserial_no，供标题显示
 					sessionStorage.setItem('itxCserialNo', cserial);
 					window.location.href = './views/turnPage.html';
 				} catch (err) {
 					console.error(err);
-					alert('Template status query failed, please try again.');
+					alert(err.message || 'Template status query failed, please try again.');
 				}
 			})();
         }
@@ -81,7 +84,7 @@ let html5QrcodeScanner = null;
 
             // 启动相机扫描
             html5QrcodeScanner.start(
-                { facingMode: "environment" },  // 使用后置摄像头
+                { facingMode: "environment" },
                 config,
                 onScanSuccess,
                 onScanError
