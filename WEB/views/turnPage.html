@@ -5,8 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Select Checklist</title>
     <link rel="stylesheet" href="../styles/turnPage.css">
+    <link rel="stylesheet" href="../styles/logoutStyle.css">
 </head>
 <body>
+    <div class="logout-container">
+        <button class="logout-btn" onclick="handleLogout()">
+            <img src="../assets/img/logout_icon.png" alt="Logout" class="logout-icon">
+            <span class="logout-text">Logout</span>
+        </button>
+    </div>
     <main class="page">
         <h1 class="title">Select Checklist</h1>
         <p class="subtitle">Please choose a component to open its checklist form</p>
@@ -32,6 +39,14 @@
             </a>
         </section>
     </main>
-        <script src="../javascript/turnPageScript.js"></script>
+    <script src="../javascript/turnPageScript.js"></script>
+    <script>
+        // 登出功能
+        function handleLogout() {
+            localStorage.removeItem('itx_isLoggedIn');
+            localStorage.removeItem('itx_userEmail');
+            window.location.href = './authPage/login.html';
+        }
+    </script>
 </body>
 </html>

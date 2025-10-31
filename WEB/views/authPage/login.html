@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="../../styles/authStyle.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>Welcome</h1>
+                <p>Please sign in to continue</p>
+            </div>
+            
+            <form class="auth-form" id="loginForm">
+                <div class="form-field">
+                    <label for="email">Email</label>
+                    <input 
+                        type="text" 
+                        id="email" 
+                        name="email" 
+                        placeholder="Enter your email" 
+                        required 
+                        autocomplete="email"
+                    />
+                </div>
+                
+                <div class="form-field">
+                    <label for="password">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        placeholder="Enter your password" 
+                        required 
+                        autocomplete="current-password"
+                    />
+                </div>
+                
+                <button type="submit" class="btn-login">Sign In</button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        // 自定义 Alert 函数
+        function showCustomAlert(message) {
+            // 创建遮罩层
+            const overlay = document.createElement('div');
+            overlay.className = 'custom-alert-overlay';
+            
+            // 创建 Alert 容器
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'custom-alert';
+            
+            // 创建图标
+            const iconDiv = document.createElement('div');
+            iconDiv.className = 'custom-alert-icon';
+            iconDiv.innerHTML = `
+                <svg fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                </svg>
+            `;
+            
+            // 创建消息
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'custom-alert-message';
+            messageDiv.textContent = message;
+            
+            // 创建按钮
+            const button = document.createElement('button');
+            button.className = 'custom-alert-button';
+            button.textContent = 'OK';
+            button.onclick = function() {
+                document.body.removeChild(overlay);
+                document.body.removeChild(alertDiv);
+            };
+            
+            // 组装 Alert
+            alertDiv.appendChild(iconDiv);
+            alertDiv.appendChild(messageDiv);
+            alertDiv.appendChild(button);
+            
+            // 添加到页面
+            document.body.appendChild(overlay);
+            document.body.appendChild(alertDiv);
+            
+            // 点击遮罩层也可以关闭
+            overlay.onclick = function() {
+                document.body.removeChild(overlay);
+                document.body.removeChild(alertDiv);
+            };
+        }
+        
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (!email || !password) {
+                showCustomAlert('Please enter both email and password');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:5202/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // 保存登录状态到 localStorage
+                    localStorage.setItem('itx_isLoggedIn', 'true');
+                    localStorage.setItem('itx_userEmail', email);
+                    
+                    // 跳转到 index.html
+                    window.location.href = '../../index.html';
+                } else {
+                    showCustomAlert(data.message || 'Login failed. Please check your credentials.');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showCustomAlert('Login failed. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -5,8 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scanner</title>
     <link rel="stylesheet" href="./styles/scanStyle.css">
+    <link rel="stylesheet" href="./styles/logoutStyle.css">
 </head>
 <body>
+    <div class="logout-container">
+        <button class="logout-btn" onclick="handleLogout()">
+            <img src="./assets/img/logout_icon.png" alt="Logout" class="logout-icon">
+            <span class="logout-text">Logout</span>
+        </button>
+    </div>
     <div class="container">
         <div class="header">
             <h1>Scan Barcode</h1>
@@ -29,6 +36,24 @@
     </div>
 
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script>
+        // 检查登录状态
+        (function() {
+            const isLoggedIn = localStorage.getItem('itx_isLoggedIn');
+            
+            if (!isLoggedIn || isLoggedIn !== 'true') {
+                // 如果没有登录，跳转到登录页面
+                window.location.href = './views/authPage/login.html';
+            }
+        })();
+        
+        // 登出功能
+        function handleLogout() {
+            localStorage.removeItem('itx_isLoggedIn');
+            localStorage.removeItem('itx_userEmail');
+            window.location.href = './views/authPage/login.html';
+        }
+    </script>
     <script src="./javascript/scanScript.js"></script>
 </body>
 </html>

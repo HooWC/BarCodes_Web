@@ -89,3 +89,16 @@ TURBOCHARGER
 如果数据库里有哪一个
 ```
 
+```
+根目录的foxpro_api JOB v3 server api要修改
+
+之前的SELECT * FROM import_reman_part_ERP WHERE cserial_no = 'FW1EXY-12264'是对的
+接下来是 SELECT * FROM dsoi WHERE cserial_no = 'FW1EXY-12264'，如果有找到数据才去turnPage，不然就返回一个alert的错误，说找不到这个chassis no
+
+然后如果在dsoi找到了就去turnPage
+```
+
+```
+保存的时候才拿partno
+```
+

@@ -70,6 +70,71 @@ app.get('/templates', (req, res) => {
   });
 });
 
+// 登录端点
+app.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({
+      success: false,
+      error: 'Missing required parameters',
+      message: 'Please provide email and password'
+    });
+  }
+
+  // 固定密码
+  const fixedPassword = 'itxerp';
+
+  // 验证密码
+  if (password !== fixedPassword) {
+    return res.status(401).json({
+      success: false,
+      error: 'Invalid credentials',
+      message: 'Invalid email or password'
+    });
+  }
+
+  try {
+    const request = pool.request();
+    request.input('email', sql.VarChar, email);
+
+    // 查询 ITX_User 表
+    const query = `
+      SELECT * FROM ITX_User
+      WHERE Login = @email
+    `;
+
+    const result = await request.query(query);
+
+    // 如果找不到用户
+    if (!result.recordset || result.recordset.length === 0) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid credentials',
+        message: 'Invalid email or password'
+      });
+    }
+
+    // 登录成功
+    const user = result.recordset[0];
+    res.json({
+      success: true,
+      message: 'Login successful',
+      user: {
+        email: user.Login,
+        // 可以添加其他用户信息
+      }
+    });
+  } catch (error) {
+    console.error('Error during login:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      message: error.message || 'Error occurred during login'
+    });
+  }
+});
+
 // 条码查询端点：根据 cserial_no 返回六个模板是否已存在
 app.post('/itx-barcode-data', async (req, res) => {
   const cserial_no = (req.body && req.body.cserial_no) || req.query.cserial_no;
@@ -593,7 +658,8 @@ app.use((req, res) => {
     message: `Path ${req.method} ${req.path} does not exist`,
     available_endpoints: [
       'GET /health',
-      'GET /templates', 
+      'GET /templates',
+      'POST /login',
       'POST /itx-barcode-data',
       'POST /generate-pdf',
       'POST /generate-pdf-batch',
